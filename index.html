@@ -1,0 +1,1054 @@
+
+<!doctype html>
+
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+  <meta name="theme-color" content="#4F7DC9">
+  <meta charset="UTF-8">
+  <title>Clojure Data Structures Tutorial(邦訳)</title>
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Source+Code+Pro:400|Roboto:400,300,400italic,500,700|Roboto+Mono">
+  <link rel="stylesheet" href="//fonts.googleapis.com/icon?family=Material+Icons">
+  <link rel="stylesheet" href="https://storage.googleapis.com/codelab-elements/codelab-elements.css">
+  <style>
+    .success {
+      color: #1e8e3e;
+    }
+    .error {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <google-codelab-analytics gaid="UA-49880327-14"></google-codelab-analytics>
+  <google-codelab codelab-gaid=""
+                  id="clojure-data-structures-tutorial"
+                  title="Clojure Data Structures Tutorial(邦訳)"
+                  environment="web"
+                  feedback-link="">
+    
+      <google-codelab-step label="翻訳について" duration="0">
+        <p>本記事は、Eric Normand さんに翻訳と共有の許可をいただいています。</p>
+<p>原文は以下のページをご参照ください。</p>
+<p><strong>Clojure Data Structures Tutorial / Eric Normand 著</strong></p>
+<p><a href="https://ericnormand.me/guide/clojure-collections" target="_blank"><strong>https://ericnormand.me/guide/clojure-collections</strong></a></p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Clojure Data Structures Tutorial" duration="0">
+        <p>このチュートリアルでは、Clojure のデータ構造をコード例で簡単に学ぶことができます。Clojureの主要なコレクション、データ構造の使用パターン、Clojure の強力なコレクションライブラリを使用するための思考プロセスを、Vector、HashMap、Set などのコレクションの使用方法、タプルやエンティティ等の一般的なパターンを含めて解説していきます。</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="正しいデータ構造の選び方" duration="0">
+        <p>すべてのプログラムは、2 つのセマンティクスを別々に扱う必要があります。</p>
+<h3 is-upgraded><strong>1. 言語のセマンティクス</strong></h3>
+<p>プログラミング言語には独自のセマンティクスがあり、その言語が提供するすべてのものがどのように機能するかを定義します。コレクションには組み込みのセマンティクスがあり、それがどのように機能し、どのように使用できるかを管理する規則があります。そのルールは、言語そのものが定めているものであり、あなたがこのセマンティクスをコントロールすることはほとんどできません。このセマンティクスは、あなたがプログラムを構築するための材料となります。</p>
+<p>私は Clojure のコレクションをレゴブロックのように考えています。ブロックは限られた固定化された方法で組み合わされます。しかし、そのような制限があるからこそ、非常に多様なものを構築することができるのです。</p>
+<p>私たちがしなければならないのは、これらの部品と、それらがどのように機能するかを学ぶことです。そうすれば、どんなものでも作れるようになるはずです。</p>
+<h3 is-upgraded><strong>2. ドメインのセマンティクス</strong></h3>
+<p>2 つ目のセマンティクスは、あなたのドメインによって支配されるものです。会計システムを書くのであれば、会計のルールに従う必要があります。プログラマーとしてのあなたの仕事は、そのルールを理解し、プログラミング言語で実装することです。</p>
+<p>実装しようとするものを理解したら、あとはそれを実装するために適切な言語のセマンティクスを見つけるだけです。もし壁を作る必要があれば、長方形のレゴブロックに手を伸ばします。高い塔を建てる必要があれば、背の高い垂直なブロックを選びます。私たちは皆、ブロックを使って構築したことがあります。たくさん遊んだからこそ、直感的に理解できることが多くあるのです。</p>
+<p>Clojure のデータ構造で構築する場合も同じ直感を開発したいものです。経験豊富な Clojure プログラマーとして、Clojure のブロックは本当にすばらしいと言えます。Clojure で初めてプログラミングをするときの問題点は、大きなレゴの箱を渡されて<a href="https://ja.wikipedia.org/wiki/%E3%83%AA%E3%83%90%E3%83%BC%E3%83%87%E3%82%A4%E3%83%AB" target="_blank">リバーデイル市</a>の忠実な模型を作るように感じることです。</p>
+<p><img alt="Lego Rivendell" title="Lego Rivendell" style="width: 641.76px" src="img/ed56c97d0d979c05.jpeg">可能性としては、まだその準備ができていないことです。しかし、あなたに足りないものは何でしょう？</p>
+<p>あなたに必要なのは、データ構造の特性を見抜き、それらがどのように組み合わすかを学ぶことです。それがこのガイドの目的です。</p>
+<p>それですべてが解決するわけではありません。利用法のパターンという形で、いくつかの助けをえることもできます。これらのパターンは、中規模から大規模の構築に役立つデータ構造の一般的な使用方法です。</p>
+<p>これらの使用パターンは、プロの Clojure プログラマーによって証明されています。ほとんどの企業やオープンソースプロジェクトでコードの中に見られるデータ構造の慣習的な使い方です。</p>
+<p>では、Clojure コレクションをどのように見るべきでしょうか。</p>
+<p>レゴブロックの特定の目的を見るとき、私たちはそれをさまざまな方法で見ることができます。高さは？幅は？長さは？他のレゴブロックとどこにくっつけることができるのか？レゴブロックの特性を説明するために、あらゆる種類の要素を使用することができます。</p>
+<p>そして、これらの質問は、まさに壁の隙間を埋めたいと思ったときにする質問です。隙間の大きさは？どことどこをつなげばいいのか？これは同じ質問です。壁の穴の中で、上部をつなぐのであれば、下部をつなぐピースを探しますよね。</p>
+<p>それと同じように、私たちはドメインの解決法に質問を投げかけ、適切な答えを持つデータ構造を見つけようとしましょう。もしドメインが物事の順序を保つ必要があるなら、 List や Vector のような順序を保つデータ構造を探します。</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="データ構造" duration="0">
+        <p>では、これからそれぞれのコレクションについて、その操作を詳しく見ていきます。実装の詳細には触れません。これらは、それらを効果的に使うために知っておくべきことに過ぎません。</p>
+<h3 is-upgraded><strong>Vector</strong></h3>
+<p>Clojure では Vector が非常によく使われますが、それには理由があります。Vector は速度と表現力のバランスをうまく取っています。これらは以下のことに役立ちます。</p>
+<ul>
+<li>挿入されたアイテムの順序を維持すること</li>
+<li>インデックスによるアイテムのランダムアクセス</li>
+<li>重複の防止</li>
+<li>高速カウント</li>
+<li>シーケンシャルな等価性チェック</li>
+<li>サブ Vector の作成</li>
+<li>インデックスが有効かどうかのチェック</li>
+<li>末尾への追加と末尾からの削除</li>
+<li>タプルの表現</li>
+</ul>
+<p><strong>構築</strong></p>
+<p>通常、 Vector はリテラル構文で作成します。</p>
+<pre>[1 2 3 4]</pre>
+<p>また、任意の数の引数を取って Vector を構築し、その中に引数を入れる関数 <code>vector</code> も使えます。</p>
+<p>コレクションに対して <code>vec</code> を関数呼び出すと、コレクションを Vector に変換することができます。</p>
+<p><strong>評価</strong></p>
+<p>リテラル表現の Vector はリーダによって読み込まれ、リーダはその中に式を含む Vector を構築します。 Vector が評価されると、すべての要素が評価された新しい Vector が作成されます。</p>
+<p>たとえば、</p>
+<pre>[1 :x (+ 2 2)]</pre>
+<p>上で読んだのと同じように読み込まれます。そして評価されます。つまり、それぞれの引数を評価して、新しい わVector に入れるのです。</p>
+<pre>(eval &#39;[1 :x (+ 2 2)]) ;=&gt;
+
+[(eval 1) (eval :x) (eval &#39;(+ 2 2))] ;=&gt;
+
+[1 :x 4]</pre>
+<p><strong>関数のセマンティクス</strong></p>
+<p> Vector は S式の先頭に置くことで、関数と同様に呼び出すことができます。</p>
+<pre>(def v [:a :b :c])
+
+(v 0)</pre>
+<p>これは何をするのでしょうか？これはインデックスによる探索を行います。基本的に、 <code>(v 0)</code> は <code>(get v 0)</code> と同じです。</p>
+<h3 is-upgraded><strong>HashMap</strong></h3>
+<p>HashMap は Clojure の主力要素です。基本的には、キーと値をマッピングします。主にエンティティを表現するために使用されますが、多くの異なる目的を果たすことができます。これらは次のようなことに役立ちます。</p>
+<ul>
+<li>順番の忘却</li>
+<li>重複した鍵の忘却</li>
+<li>キーによるランダムアクセス</li>
+<li>キーと値の関連付け</li>
+<li>キーに基づくキーと値のペアの削除</li>
+<li>高速カウント</li>
+<li>マップの等価性チェック</li>
+<li>あるキーがマップに存在するかどうかの確認</li>
+<li>エンティティの表現</li>
+<li>ディスパッチテーブルの作成</li>
+</ul>
+<p><strong>構築</strong></p>
+<p>通常、HashMap はリテラル構文で作成します。</p>
+<pre>{:a 1
+ :b 2
+ :c 3}</pre>
+<p>覚えておくべきルールがいくつかあります。リテラルの HashMap に重複するキーがある場合、エラーが発生します。全てのキーは一意でなければならず、以下のような書き方はできません。</p>
+<pre>{:a 1
+ :a 2} ;=&gt; throws clojure.lang.LispReader$ReadException: Duplicate Key: :a</pre>
+<p>読み出し時と評価時の 2 回、エラーが発生する可能性があることに注目してください。評価されないキーは、評価されるキーと同様に一意でなければなりません。</p>
+<pre>(def x :a)
+
+{:a 1
+ x  2} ;=&gt; throws java.lang.IllegalArgumentException: Duplicate key: :a</pre>
+<p>HashMap がどのように評価されるかは、次のセクションで説明します。</p>
+<p>HashMap は <code>hash-map</code> 関数を使って作ることもできます。この関数はキーと値を交互に受け取り、空の HashMap に追加します。</p>
+<pre>(hash-map :a 1 :b 2) ;=&gt; {:b 2 :a 1}</pre>
+<p><code>hash-map 関数は重複を許容します。</code></p>
+<p><code>よくあるパターンは、空の HashMap にキーと値のペアを追加することです。キーと値のペアは Vector で作ることができます。</code></p>
+<pre>(into {} ;; 空の HashMap に追加する
+  [[:a 1] [:b 2] [:c 3]]) ;; キーと値のペアのシーケンス
+                          ;=&gt; {:b 2 :c 3 :a 1}</pre>
+<p><strong>他の操作</strong></p>
+<ul>
+<li><code>keys</code> 関数はキーの集合を返し、<code>vals</code> 関数は値の集合を返します。</li>
+<li><code>merge</code> 関数は 2 つ以上の HashMap のキーと値を結合します。</li>
+<li><code>select-keys</code> 関数は、どのキーを残すかを指定することで、未知のキーや不要なキーを Map から削除します。</li>
+</ul>
+<p>HashMap の他の操作については、ドキュメントを参照してください。</p>
+<p><strong>評価</strong></p>
+<p>他の Clojure 式と同様に、リテラルの HashMap には評価のセマンティックがあります。読取と評価の 2 つのフェーズがあります。</p>
+<p>のフェーズでは、HashMap がキーと値の式で作成されます。これらは一意であるかどうかチェックされます。以下のような例は不正です。</p>
+<pre>{(rand) :a
+ (rand) :b} ;=&gt; throws clojure.lang.LispReader$ReadException: Duplicate key: (rand)</pre>
+<p><code>(rand)</code> の2回の呼び出しが同じ値を返すことはまずないとしても、式は同じなので、読取のフェーズで失敗することになります。</p>
+<p>次に、すべてのキーと値が評価され、新しい HashMap に入れられます。ここでも一意性のチェックが行われます。</p>
+<pre>(eval &#39;{10 :ten (+ 1 1) :two (* 7 2) :fourteen}) ;=&gt;
+
+{(eval 10)       (eval :ten)
+ (eval &#39;(+ 1 1)) (eval :two)
+ (eval &#39;(* 7 2)) (eval :fourteen)} ;=&gt;
+
+{10 :ten 2 :two 14 :fourteen}</pre>
+<p><strong>関数のセマンティクス</strong></p>
+<p>HashMap は S 式の先頭に置くことで、関数として呼び出すことができます。そうすると、引数として与えられたキーが検索されます。</p>
+<pre>(def numbers {:zero 0 :one 1 :two 2})
+
+(numbers :two) ;=&gt; 2</pre>
+<p><code>(numbers :two)</code> は <code>(get numbers :two)</code> と同じ意味です。</p>
+<h3 is-upgraded><strong>ソート版の Map</strong></h3>
+<p>ソート版の Map はクールですが、正直なところ私は使った記憶がありません。図書館のようなもので、カード式ですぐに本を探せますし、本も（デューイ十進分類法に基づくようなキーがあり）順番に並んでいます。</p>
+<p class="image-container"><img alt="Conan the librarian" style="width: 498.00px" src="img/733f22b0b3579028.gif"></p>
+<p>ソート版の Maps は、以下のような場合に有効です。</p>
+<ul>
+<li>キー順にシーケンシャルアクセスをする</li>
+<li>重複を避ける</li>
+<li>キーと値の関連付ける</li>
+<li>キーを指定してキーと値のペアを削除する</li>
+<li>キーと値のペアを数える</li>
+<li>マップの等価性を確認する</li>
+<li>キーが含まれているかどうかを確認する</li>
+</ul>
+<p><strong>構築</strong></p>
+<p>ソート版の Map を作成するためのリテラルはありません。また、print すると普通のマップのように見えることは混乱を招きます。しかし、Clojure は構築のためのいくつかの関数を提供します。</p>
+<pre>(sorted-map :b 43 :a 100 :c 4) ;=&gt; {:a 100 :b 43 :c 4} ;; 順番にご注目ください</pre>
+<p>また、独自の比較の関数を受け取る ソート版のマップを作成することができます。</p>
+<pre>(sorted-map-by (comparator &lt;) 0 :a 1 :b 2 :c) ;=&gt; {0 :a 1 :b 2 :c}
+(sorted-map-by (comparator &gt;) 0 :a 1 :b 2 :c) ;=&gt; {2 :c 1 :b 0 :a}</pre>
+<p><strong>他の操作</strong></p>
+<p>ソート版の Map は、キーの順序を維持すること以外、HashMap と同じ操作を行うことができます。</p>
+<p><strong>関数のセマンティクス</strong></p>
+<p> ソート版のマップは、ルックアップを行う関数として使用することができます。</p>
+<pre>(def students (sorted-map 123 {:name &#34;Eric&#34;} 332 {:name &#34;Mary&#34;} ...))
+
+(students 332) ;=&gt; {:name &#34;Mary&#34;}</pre>
+<h3 is-upgraded><strong>Set</strong></h3>
+<p>もし、あなたが猫の大学を設立するとしたらどうでしょう。それぞれの猫にはニャーと鳴く ID ナンバーがついています。そして、あなたは出席をとっています。猫でいっぱいの教室は数えるのが難しいので、おそらく同じ猫を二度数えることになるでしょう。できるすべての猫 id を確認し、重複を無視することもできます。なので、 Set はクールなのです。</p>
+<p class="image-container"><img alt="Herding cats" style="width: 435.00px" src="img/187a7afd805b7bd6.gif"></p>
+<p> Set が素晴らしいのは以下のような場合です：</p>
+<ul>
+<li>非順序にシーケンシャルアクセスをする</li>
+<li>重複を忘れる</li>
+<li>等しい値がある場合、その値を調べる</li>
+<li>高速カウントを行う</li>
+<li>集合の等質性を確認する</li>
+<li>ある項目が与えられたら、その項目を削除する</li>
+<li>包含の確認する</li>
+<li>マルチな比較をする</li>
+</ul>
+<p><strong>構築</strong></p>
+<p> Set にはリテラル構文があります。</p>
+<pre>#{1 2 3} ;=&gt; #{1 3 2}</pre>
+<p>リテラルでの重複は、 HashMap と同じような問題があります。リテラル Set に重複があるのは許されません。</p>
+<pre>#{1 1} ;=&gt; clojure.lang.LispReader$ReaderException: Duplicate key: 1</pre>
+<p>組み込みの hash-set 関数で新しい Set を作ることができます。</p>
+<pre>(hash-set 1 2 3) ;=&gt; #{1 3 2}</pre>
+<p>また、set 関数を使えば、任意のコレクションを Set に変換することができます．この関数は重複を許容することに注意しましょう。</p>
+<pre>(set [1 2 3 1]) ;=&gt; #{1 2 3}</pre>
+<p><strong>評価のセマンティクス</strong></p>
+<p> Set を評価することは、すべての要素が評価された新しい Set を作成することを意味します。</p>
+<pre>(eval &#39;#{1 (+ 2 2) (* 9 3)}) ;=&gt;
+
+#{(eval 1) (eval &#39;(+ 2 2)) (eval &#39;(* 9 3))} ;=&gt;
+
+#{1 4 27}</pre>
+<p>リテラルに重複がある場合、読取時と評価時の 2 通りがあることに注意してください。</p>
+<pre>;; during read
+#{(rand) (rand)} ;=&gt; clojure.lang.LispReader$ReaderException: Duplicate key: (rand)
+
+;; during eval
+(def x 1)
+#{1 x} ;=&gt; java.lang.IllegalArgumentException: Duplicate key: 1</pre>
+<p><strong>他の操作</strong></p>
+<p> Set で数学的な Set 操作と関係代数を行うためのオペレータの式があります。概要は<a href="https://ericnormand.me/clojure-set/" target="_blank">このガイド</a>、詳細は<a href="https://clojure.org/reference/data_structures#Sets" target="_blank">このドキュメント</a>をご覧ください。</p>
+<p><strong>関数呼び出しのセマンティクス</strong></p>
+<p> Set は、S 式の最初の位置に置くことで、関数と同じように呼び出すことができます。これは検索を実行します。本質的には<code>、get</code> を呼び出すようなものです。</p>
+<pre>(#{1 2 3} 3)  ;=&gt; 3
+(#{1 2 3} 10) ;=&gt; nil</pre>
+<h3 is-upgraded><strong>ソート版の</strong><strong> Set</strong></h3>
+<p> ソート版の Set (集合) は Set と同じです。唯一の違いは、順番にアクセスできることです。ソート済みの Set から得られる順序は、自然な順序 (数値の場合は数値順、文字列、キーワード、シンボルなどの場合はアルファベット順) で決定され、必要であれば独自の順序付けの関数を指定することもできます。</p>
+<p> ソート版の Set は以下の点で洗練されています。</p>
+<ul>
+<li>順序付きシーケンシャルアクセス</li>
+<li>重複を忘れること</li>
+<li>等しい値がある場合にその値を調べること</li>
+<li>高速カウント</li>
+<li>集合の等質性チェック</li>
+<li>ある項目が与えられたときに、その項目を削除すること</li>
+<li>包含の確認</li>
+<li>マルチな比較</li>
+</ul>
+<p><strong>構築</strong></p>
+<p>ソート版の Set にはリテラルはありません。sorted-set で作ることができます。</p>
+<pre>(sorted-set 7 3 1 2 3 1) ;=&gt; #{1 2 3 7}</pre>
+<p>なお、<code>print</code> すると通常の Set と同じように見えます。</p>
+<p><strong>関数呼び出しのセマンティクス</strong></p>
+<p> ソート版の Set は、通常の Set と同様に、関数呼び出しで使用されたときに検索を実行します。<code>((sorted-set 1 2 3) x)</code> は <code>(get (sorted-set 1 2 3) x)</code> と同じです。</p>
+<h3 is-upgraded><strong>List</strong></h3>
+<p>Clojureでは、コードを表現するために List が最もよく使われます。それらはしばしばシーケンスと互換的に使用されますが、List は <code>(clojure.lang.IPersistentList)</code> です。(シーケンスではなく) List かどうかは、<code>list?</code> を呼び出すことでわかります。</p>
+<pre>(list? &#39;(1 2 3))      ;=&gt; true
+(list? (seq [1 2 3])) ;=&gt; false</pre>
+<p>Vector にはいくつかの重要な利点があるため、List は Vector ほどは使用されません。</p>
+<p><strong>構築</strong></p>
+<p>Clojure には、List のリテラル表現がありません。プログラム中に List を書き出すと、それはコードとして解釈されます。一見すると、List を引用することが良い解決策であるように見えます。しかし、List を quote (<code>'</code>)しても、List の要素は評価されません。つまり、quote された List はリテラルの List にしか使えないということです。</p>
+<pre>&#39;(1 2 3) ;=&gt; (1 2 3) ;; ok!
+&#39;(1 (+ 1 1) 3) ;=&gt; (1 (+ 1 1) 3) ;; おそらく望む結果ではない</pre>
+<p>通常、List が必要な場合は、list 関数で List を作成します。</p>
+<pre>(list 1 2 3)       ;=&gt; (1 2 3)
+(list 1 (+ 1 1) 3) ;=&gt; (1 2 3)</pre>
+<p><strong>評価のセマンティクス</strong></p>
+<p>List を評価するとき、 List は S 式として扱われます。これは、Clojure でデータを表現するために Vector が好まれる大きな理由の 1 つです。</p>
+<h3 is-upgraded><strong>Queue</strong></h3>
+<p>正直に言うと、Clojure で Queueを使った覚えはありません。でも、使うべき時があるんです。私は学ぶことに前向きです。</p>
+<p> Queue がクールなのは以下の点です。</p>
+<ul>
+<li>順序付きシーケンシャルアクセス</li>
+<li>重複の記憶</li>
+<li>高速カウント</li>
+<li>順次等価検査</li>
+<li>末尾への追加と先頭からの削除</li>
+</ul>
+<p><strong>構築</strong></p>
+<p> Queue はどのように作るのでしょうか。実は一番難しいです。リテラルなシンタックスもなければ、作るための関数もありません。空っぽの Queue から始めて、コンジョンを使って作り上げていかなければならないのです。</p>
+<pre>(def queue clojure.lang.PersistentQueue/EMPTY)
+
+(conj queue 1 2 3) ;=&gt; (1 2 3)</pre>
+<p><strong>他の操作</strong></p>
+<ul>
+<li><code>peek</code> は最初の要素を表示します</li>
+<li><code>conj</code> は末尾に追加します</li>
+<li><code>pop</code> は最初の要素を削除します</li>
+</ul>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="アクセスのパターン" duration="0">
+        <p>Clojure では、コレクションはアクセスパターンによって整理されます。これらの異なるアクセスパターンにより、コレクションの使用方法が決まります。ドメインをモデル化するとき、ドメイン内の情報にどのようにアクセスしたいかを調べます。そして、求めるアクセスパターンに合致するデータ構造を選択します。</p>
+<p>では、多くの一般的なアクセスパターンを見ていきましょう。その過程で、それらのさまざまなパターンから各コレクションをどのように使うかについて学びます。そして、それらの観点に沿ってドメインの課題を分析する方法の例をいくつか見ていきます。そして最後に、すべてのコレクションへの参照方法をまとめます。</p>
+<p>目標は、コレクションを選択し使用するための枠組みを持つことであり、体系的にプログラミングの認知的負担を軽減することです。時間が経てば、直感的に理解できるようになるでしょう。</p>
+<p>つまり、私たちがドメインに投げかける質問は以下の通りです。</p>
+<ul>
+<li>どのように情報にアクセスするのか？</li>
+<li>どのような情報を持っているのか？</li>
+<li>どのような情報を求めているのか？</li>
+</ul>
+<p>これらの質問に対する答えが、解決策を実装するための指針となります。通常、適切な質問をすれば、適切なデータ構造は一目瞭然になります。</p>
+<p>アクセスに関するこの質問は、スピードに関係しています。もっと具体的に言えば、規模に応じたスピードです。データ構造が異なれば、アクセス速度も異なります。例えば、大きなリンクリストの最後の要素を見つけるのは遅いですが、最初の要素を見つけるのはどんなに大きな List でも速いです。そこで、リンクリストの要素には先頭からアクセスする、それが速いからということにします。</p>
+<p>だからといって、最後の項目を取得できないわけではないし、ある稀な状況では一度だけ遅いアクセスをするかもしれませんが、最後の項目に頻繁にアクセスしなければならないのであれば、他のコレクションではなくリンクリストを選択することはないでしょう。では課題を単純化して「リンクリストの最後の項目にはアクセスしない」ということにしましょう。</p>
+<p>このようにコレクションを見ることで、質問に答えることができ、ドメインの解決策を実装するのに適したコレクションを選ぶことができるようになります。</p>
+<h3 is-upgraded><strong>順次的なアクセス</strong></h3>
+<p>例えば、10 個の文字列を順番に print したいとします。つまり、与えられた順番に print するのです。以下のようにすることができます。</p>
+<pre>(doseq [s strings]
+  (println s))</pre>
+<p>文字列を順番に印刷することが分かっている場合、文字列はどのような型にすべきでしょうか？主な選択肢は 2 つあります。 List と Vector です。</p>
+<p>List と Vector はどちらも要素の順番を維持します。 List と Vector はどちらも要素の順番を保持します。しかし、 Vector は配列の最後に、 List は先頭に追加されることに注意してください。重要なのは、順序が安定している（新しい要素を追加しても変わらない）ことと、任意である（どの順序にするか決めることができる）ことです。</p>
+<p>もう 1 つの一般的でない選択肢は、 Queue  (clojure.lang.PersistentQueue) です。 Queue は要素の順序を維持し（最後に追加し）、最初からそれらを飛び出させることができます。</p>
+<p>他の 2 つのオプションは、 ソート版のマップと ソート版の Set です。これらは順序を維持しますが、追加する順序では決まりません。順序は比較関数で定義され、その比較関数を指定することができます。つまり、アルファベット順に並べたい場合は、そうすることができます。</p>
+<p>もし、順序にこだわらないのであれば、どんな古いコレクションでもかまいません。HashMap と Sets は順序を維持しません。ただし、HashMap と Set は小さいうちは順序を維持するようですが、これは実装の細部に過ぎず、十分に大きくなると秩序は失われます。</p>
+<p>あなたがドメインに問うべき質問は以下の通りです。</p>
+<ul>
+<li>物事を順序立てて管理する必要があるのか？</li>
+<li>物事を追加した順序を覚えておきたいか？</li>
+<li>再整理で維持される順序が必要か？(アルファベット順のように)</li>
+<li>新しいアイテムはどこに移動させたいか？</li>
+</ul>
+<p><strong>List</strong> - 項目を追加する順序を維持します。最前面に追加されます。</p>
+<p><strong>Vector</strong> - 項目を追加する順番を維持します。後ろに追加されます。</p>
+<p><strong>Queue</strong> - 項目を追加する順番を維持します。後ろに追加されます。</p>
+<p><strong>ソート版の Map</strong> - キーでソートされたアイテムを保持します。</p>
+<p><strong> ソート版の Set</strong> - アイテムをキーでソートして保持します。</p>
+<p><strong>HashMap</strong> - 順番を保持しません。</p>
+<p><strong>Set</strong> - 順序を保持しません。</p>
+<p><strong>利用法</strong></p>
+<p>conj 関数で要素を追加し、seq 関数で任意のコレクションからシーケンスを取得することができます。シーケンス関数の中では、seq 関数が代わりに呼ばれます。</p>
+<p><strong>例</strong></p>
+<p>例えば、TODO リストを作成する必要があるとします。新しい TODO 項目は一番下に置きたいと思います。 List の一番下というのは、順番の一番後ろという意味です。順序を維持することと、最後に追加することの 2 つの要件があります。上のコレクションの List を見て、 Vector と Queue が候補に上がりました。どちらも動作しますが、より一般的であるため、 Vector を選択します。</p>
+<pre>(def todos (atom [])) ;;  Vector を使う
+
+(defn add-todo! [item]
+  (swap! todos conj item))
+
+(add-todo! &#34;Buy kitten&#34;)
+(add-todo! &#34;Buy cat food&#34;)
+(add-todo! &#34;Feed kitten&#34;)
+
+(doseq [item @todos]
+  (prn item))</pre>
+<p>新しいアイテムはリストの下の方にあります。</p>
+<p>もし、一番上に追加したい場合はどうすればいいのでしょうか？コレクションのリストを見てみると、List がそれをやってくれることがわかります。</p>
+<pre>(def todos (atom ())) ;; list を使う
+
+(defn add-todo! [item]
+  (swap! todos conj item))
+
+(add-todo! &#34;Buy kitten&#34;)
+(add-todo! &#34;Buy cat food&#34;)
+(add-todo! &#34;Feed kitten&#34;)
+
+(doseq [item @todos]
+  (prn item))</pre>
+<p>最初の 1 行が変わっただけで、残りのコードは同じです。これは重要なことです。Clojure は明示的にこのように設計されています。アクセスパターンの大部分は、単にコレクションタイプを入れ替えるだけで、異なる動作を得ることができます。</p>
+<p>TODO をアルファベット順に並べたい場合はどうすればいいでしょうか？ ソート版の Set を使うことができます。</p>
+<pre>(def todos (atom (sorted-set))) ;; sorted set を使う
+
+(defn add-todo! [item]
+  (swap! todos conj item))
+
+(add-todo! &#34;Buy kitten&#34;)
+(add-todo! &#34;Buy cat food&#34;)
+(add-todo! &#34;Feed kitten&#34;)
+
+(doseq [item @todos]
+  (prn item))</pre>
+<p>ここでも、コレクションを変更することで動作を変えています。しかし、アルファベット順では不満があります。整理された感じはしますが、アルファベット順は私たちのドメインでは間違っているのかもしれません。各タスクに優先順位をつけて、 ソート版の Set に優先順位で項目を比較したいことを伝えてみましょう。</p>
+<pre>(defn priority-order [a b]
+  (compare (:priority a) (:priority b)))
+
+(def todos (atom (sorted-set-by priority-order))) ;; sorted set を使う
+
+(defn add-todo! [item]
+  (swap! todos conj item))
+
+(add-todo! {:priority 1 :name &#34;Take nap&#34;})
+(add-todo! {:priority 4 :name &#34;Clean kitchen&#34;})
+(add-todo! {:priority 2 :name &#34;Eat lunch&#34;})
+
+(doseq [item @todos]
+  (prn item))</pre>
+<p>また、コレクションを変更することで、異なる動作が得られることに注意してください。これはとても重要なことなので、何度も取り上げます。</p>
+<p>さて、秩序がまったく必要ない場合はどうでしょうか。今はキャプチャ・モードでやりたいことをすべてブレインストーミングしているところですが、まだ順番がよくわからないとしたらどうでしょう。それは、ただの袋のようなものです。上のコレクションの List に目を通してみましょう。Set も HashMap も順序を維持しませんが、私たちは実際にはキーがなく値だけです。この場合、HashMap は使わずに Set を使えばいいのです。</p>
+<pre>(def todos (atom #{})) ;; set
+
+(defn add-todo! [item]
+  (swap! todos conj item))
+
+(doseq [letter &#34;ABCDEFGHIJKL&#34;] ;; 文字数を増やす
+  (add-todo! (str letter)))
+
+(println (apply str @todos))</pre>
+<p>順番がわかるように、文字をたくさん入れました。</p>
+<p>上げればきりがないのですが、3 つあります。まず 1 つ目は、アイテムが少ない場合、Set は秩序を保っているように見えるということです。3 つの項目で試してみてください。これは、Set の実装の詳細と関係があり、Set が小さいときには実際に秩序が保たれます。しかし、それを信頼することはできません。いつ秩序を維持しないようになるのでしょうか。それは実装上の問題です。集合は決して秩序を保証するものではありません。</p>
+<p>もうひとつは、これらの Set はしばしば UI にとってひどいものであるということです。アイテムを追加するたびに、全体が恣意的に並べ替えられることを想像してみてほしい。人々は、UI がより安定していることを期待しているのです。そのことを念頭に置いておいてください。恣意的な順序付けをした方が良い場合が多いのです。</p>
+<p>3 つ目は、「 Set は重複を記憶しない」ということです。これもアクセスパターンの一つなので、これから見ていきましょう。</p>
+<h3 is-upgraded><strong>重複を記憶する</strong></h3>
+<p>物事を学ぶとき、その情報を保存するとき、2 回見たかどうかを覚えておく必要があるでしょうか。例えば、本の棚卸しをするとき、2 冊持っているかどうか知りたいでしょう。しかし、読んだ本のリストを作るときには、該当の本を 2 回読んだことを書き留める必要はないでしょう。</p>
+<p>ドメインに関する質問は以下の通りです。</p>
+<ul>
+<li>重複して記憶する必要があるのか？</li>
+</ul>
+<p><a href="https://ericnormand.me/guide/clojure-collections#vector" target="_blank">Vector</a>, <a href="https://ericnormand.me/guide/clojure-collections#list" target="_blank">List</a>, <a href="https://ericnormand.me/guide/clojure-collections#queue" target="_blank">Queue</a> - 重複を記憶します</p>
+<p><a href="https://ericnormand.me/guide/clojure-collections#hash-map" target="_blank">HashMap</a> と ソート版の Map - 重複を記憶せず、等値性のキーだけを使用します</p>
+<p><a href="https://ericnormand.me/guide/clojure-collections#set" target="_blank">Set</a> と <a href="https://ericnormand.me/guide/clojure-collections#sorted-set" target="_blank"> ソート版の Set</a> - 重複して記憶しません</p>
+<p><strong>例</strong></p>
+<p>あなたのウェブサイトへのすべての訪問をカウントし、IP ごとの訪問を知るために IP を追跡する必要があるとしましょう。この場合、同じ IP から訪問が 2 回あったことを覚えておく必要があるので、重複を記憶するコレクションを使用することができます。上のリストから Vector が合致することが分かります。</p>
+<pre>(def visits (atom []))
+
+(defn record-visit! [ip]
+  (swap! visits conj ip))</pre>
+<p>しかし、訪問回数を記憶するのではなく、訪問者を記憶したい場合はどうでしょうか。重複しているものを忘れたいのです。この場合、 Set を使用します。</p>
+<pre>(def visitors (atom #{}))
+
+(defn record-visitor! [ip]
+  (swap! visits conj ip))</pre>
+<h3 is-upgraded><strong>キーによる検索</strong></h3>
+<p>友達がたくさんいる人は、その人たちの電話番号を携帯電話に入れていることでしょう。どうやって相手の番号を調べるのでしょうか？紙とペンを使って調べるなら、友人一人につき一枚のカードを用意することになるでしょう。そのカードの一番上に名前を書いて、電話番号はそのカードのどこかに書いておきます。カードはすべて名前のアルファベット順で保管します。電話番号を調べるときは、名前を調べて番号を読み取ります。</p>
+<p>以上の流れは、ごく一般的なアクセスパターンです。この場合、名前がキーで、電話番号が値です。 HashMap を使うと、キーが与えられた値を調べることができる。キーと値は、コレクションを含む任意の型にすることができます。</p>
+<p>さて、Vector ではキーで値を調べることができます。キーは 0 から List の長さまでの整数です。インデックスとも呼ばれます。 Vector は、その大きさに関係なく、任意の要素を非常に素早く取り出すことができます。 Vector の大きさに関係なく、どんな要素でもすぐに取り出すことができます。</p>
+<p>ドメインに関するいくつかの質問は以下の通りです。</p>
+<ul>
+<li>ある値をキーなどの別の値を使って調べる必要があるか？</li>
+<li>キーの種類は何か？</li>
+</ul>
+<p>HashMap と  ソート版の Map - 任意のキーと値の型。</p>
+<p>Vector - 任意のキーと値の型。しかし、正の整数でないキーと有効なインデックスを持つ値は決して見つけることができない。Vector は、正の整数のキーにのみ使用する必要があります。</p>
+<p>Set（および ソート版の Set） - 与えられた値と等しい値を Set から探します。これは、Set が HashMap で、キーが自分自身にマッピングされているようなものです。</p>
+<p><strong>使用法</strong></p>
+<p>Clojure でキーを元に値を調べるには <code>get</code> 関数を使います。</p>
+<p><strong>例</strong></p>
+<p>例として、<a href="https://en.wikipedia.org/wiki/Rolodex" target="_blank">ローロデックス</a>を作りましょう。</p>
+<pre>(def rolodex {&#34;Eric&#34; &#34;504-543-0093&#34;
+              &#34;Jane&#34; &#34;303-221-3333&#34;
+              &#34;Joe&#34; &#34;222-323-2222&#34;})
+
+(get rolodex &#34;Jane&#34;)</pre>
+<h3 is-upgraded><strong>キーと値を関連付ける</strong></h3>
+<p>キーに基づいて値を調べるのは非常に便利です。では、新しいキーと値を保存するにはどうしたらよいのでしょうか。それが Associate (関連付け) です。調べる操作とは対照的で、保存のための操作です。</p>
+<p>Clojure の連想型のデータ構造は HashMap と Vector です。HashMap では、任意のキーと任意の値を関連付けることができます。もしそのキーがすでに存在すれば、古い値が置き換えられます。 Vector も同様ですが、キーには整数を使用しなければなりません。これにより、Vector 内の既存の要素を新しい値で置き換えることができます。</p>
+<p>ドメインに求めるべきいくつかの質問は以下の通りです。</p>
+<ul>
+<li>キーに基づいた値を保存する必要があるのか？</li>
+<li>キーのタイプは何か？</li>
+</ul>
+<p><a href="https://ericnormand.me/guide/clojure-collections#hash-map" target="_blank">HashMap</a> と <a href="https://ericnormand.me/guide/clojure-collections#sorted-map" target="_blank">ソート版の Map</a> - 任意のキーと値の型</p>
+<p><a href="https://ericnormand.me/guide/clojure-collections#vector" target="_blank">Vector</a> - 値は任意の型ですが、キーは負でない整数である必要があります。Vector にすでに存在するキー（インデックス）はもちろん、Vector の末尾を過ぎたキーも再設定可能です。</p>
+<pre>;; 既存の値を置き換える
+(assoc [:a :b :c] 2 :x) ;=&gt; [:a :b :x]
+
+;; 末尾に1つ関連づける
+(assoc [:a :b :c] 3 :x) ;=&gt; [:a :b :c :x]
+
+;; 番号をとばすことはできない
+(assoc [:a :b :c] 5 :x) ;=&gt; throws IndexOutOfBoundsException</pre>
+<p><strong>利用法</strong></p>
+<p>新しいキーと値のペアを追加したり、既存の値を <code>assoc</code> 関数で置き換えたりします。</p>
+<pre>(assoc {} :greeting &#34;Hello, World!&#34;)</pre>
+<p>既存の値を変更する必要がある場合は<code>、update</code> 関数を使います。</p>
+<pre>(def meals {:breakfast []})
+
+(update meals :breakfast conj :eggs)</pre>
+<p>以下とほぼ同等です。</p>
+<pre>(assoc meals :breakfast (conj (get meals :breakfast) :eggs))</pre>
+<p><strong>例</strong></p>
+<p>さて、2 つほど前のセクションでは、ウェブページの訪問を記録したかったので、重複も含めてすべての IP アドレスを Vector に書き出しました。それはうまくいったのですが、その仕事を成し遂げるための最良の方法とは言えません。より良い方法は、この問題を<a href="https://ericnormand.me/guide/clojure-collections#accumulator-index" target="_blank">累積のインデックス</a>と考えることです。私たちは、それぞれの IP に訪問回数を関連付けたいので、上記のリストから何か必要なものがあることを意味します。順番は気にしないため、HashMap を選択しましょう。</p>
+<pre>(def visits (atom {}))
+
+(defn record-visit! [ip]
+  (swap! visits update ip (fnil inc 0)))
+
+(record-visit! &#34;2.2.2.2&#34;)
+(record-visit! &#34;2.2.2.2&#34;)
+(record-visit! &#34;2.2.2.2&#34;)
+(record-visit! &#34;1.1.1.1&#34;)</pre>
+<p><code>fnil</code> 関数は、キーが見つからなかった場合にデフォルトの値を与えることができます。</p>
+<h3 is-upgraded><strong>キーと値の関連付けを解除する</strong></h3>
+<p>さて、HashMap に何かを入れたら、そのキーに基づいてデータ構造からそれを取り除きたいと思うかもしれません。HashMap は、キーによって何かを取り除くことができる唯一のデータ構造です。</p>
+<p>あなたのドメインに尋ねるべきいくつかの質問は以下の通りです。</p>
+<ul>
+<li>キーと値のペアを削除する必要があるか？</li>
+</ul>
+<p><a href="https://ericnormand.me/guide/clojure-collections#hash-map" target="_blank">HashMap</a> (または <a href="https://ericnormand.me/guide/clojure-collections#sorted-map" target="_blank">ソート版の Map</a>) - キーを指定して、キーと値のペアを削除することができる</p>
+<p><strong>利用法</strong></p>
+<p>dissoc 関数を使います。</p>
+<p><strong>例</strong></p>
+<p>例えば、訪問者のレポートを作成するとします。訪問者の HashMap から、すべての localhost の訪問を除外したいと思います。localhost の IP アドレスは 127.0.0.1 です。そこからレポートを生成する前に、HashMap からそれを削除することができます。</p>
+<pre>(def visits (atom {&#34;1.1.1.1&#34; 102
+                   &#34;2.2.2.2&#34; 80
+                   &#34;127.0.0.1&#34; 1008}))
+
+(dissoc @visits &#34;127.0.0.1&#34;)</pre>
+<h3 is-upgraded><strong>Count</strong></h3>
+<p>コレクションにいくつのアイテムがあるかを知るには<code>、count</code> 関数を使います<code>。count</code> 関数は通常、コレクションに対して非常に高速ですが、高速ではないいくつかのものに対しても動作するようにオーバーロードされており、イテレータや遅延シーケンスで動作します。これらの場合、要素がいくつあるかカウントするために全てのアイテムを調べなければなりません。そのため、遅延シーケンスは全て評価されてしまいます。そして、無限列と無限反復子は決して終わることがなく、永遠にカウントし続けるのです。</p>
+<p>あなたのドメインに問うべき質問は次の通りです。</p>
+<ul>
+<li>アイテムの個数を知る必要はあるか？</li>
+</ul>
+<p><a href="https://ericnormand.me/guide/clojure-collections#vector" target="_blank">Vector</a>, <a href="https://ericnormand.me/guide/clojure-collections#set" target="_blank">Set</a> (または <a href="https://ericnormand.me/guide/clojure-collections#sorted-set" target="_blank">ソート版の Set</a>), <a href="https://ericnormand.me/guide/clojure-collections#list" target="_blank">List</a> - アイテムの個数を返します</p>
+<p><a href="https://ericnormand.me/guide/clojure-collections#hash-map" target="_blank">HashMap</a> (or <a href="https://ericnormand.me/guide/clojure-collections#sorted-map" target="_blank">ソート版の Map</a>) - キーと値のペアの数を返します</p>
+<p><a href="https://ericnormand.me/guide/clojure-collections#sequences" target="_blank">Lazy seqs</a> - シーケンス全体を実現するため、遅くなることがあります。無限の遅延 List が永遠に実行されます。</p>
+<p><strong>利用法</strong></p>
+<p>コレクションに対して <code>count</code> 関数を呼び出します。</p>
+<p><strong>例</strong></p>
+<p>訪問者数を調べたい場合、HashMap に <code>count</code> 関数を使えば分かります。</p>
+<pre>(def visits (atom {&#34;1.1.1.1&#34; 102
+                   &#34;2.2.2.2&#34; 80
+                   &#34;127.0.0.1&#34; 1008}))
+
+(count @visits)</pre>
+<h3 is-upgraded><strong>等価比較</strong></h3>
+<p>すべてのコレクションは、独自のバージョンの等式チェックを持ちます。コレクションを含む 2 つの値を比較するために = 関数を使用することができます。コレクションが等しいためには、そのアイテムが等しくなければなりません。</p>
+<p>しかし、話はそこにとどまりません。Clojure はコレクションを等価パーティション (Equality Partitions) に分割します。2 つのコレクションが異なる等価パーティションにある場合、それらは決して等しくありません。たとえば、ベクトルはどの HashMap とも等しくありません。しかし、同じパーティションにある場合は、そのパーティションの比較ルールが適用されます。</p>
+<p>順次的な等価パーティションは、2 つのコレクションをアイテムごとに順番に比較します。各コレクションの最初のアイテムは、等しくなければなりません。2 番目、3番目とアイテムは等しくなければなりません。基本的に、配列は同じアイテムを同じ順序で持っていなければならなりません。</p>
+<p>等価パーティションの仕切りに入る同じコレクションでは、Vector とリストがあります。つまり、(= [1 2 3] &#39;(1 2 3)) が真を返すということです。これらは、異なるデータ構造であっても等しいのです。</p>
+<p>マップの等値分割は、2 つの Key-Value ペアのコレクションを比較します。同じ Key-Value のペアが、順序に関係なく、両方の HashMap に存在しなければならなりません。マップの型はすべて、この等価パーティションに属します。</p>
+<p> Set の等価パーティションは、2 つの値のコレクションを比較します。同じ値が両方の集合に存在しなければなりませんが、順序は関係ありません。 Set 型はすべてこの等式分割に属します。</p>
+<p>ドメインに対するいくつかの質問は以下の通りです</p>
+<ul>
+<li>他の値と同等に比較する必要があるか？</li>
+<li>どのような値を比較するか？</li>
+<li>等価性はどのように計算するか？</li>
+</ul>
+<p><a href="https://ericnormand.me/guide/clojure-collections#vector" target="_blank">Vector</a>, <a href="https://ericnormand.me/guide/clojure-collections#list" target="_blank">List</a>, <a href="https://ericnormand.me/guide/clojure-collections#queue" target="_blank">Queue</a> - 項目を順番に等しさで比較することで、等しさを比較する。</p>
+<p><a href="https://ericnormand.me/guide/clojure-collections#hash-map" target="_blank">HashMap</a> , <a href="https://ericnormand.me/guide/clojure-collections#sorted-map" target="_blank">ソート版の Map</a> - すべての Key-Value ペアを順序なしで等価に比較することにより、等価性を比較する。</p>
+<p><a href="https://ericnormand.me/guide/clojure-collections#set" target="_blank">Set</a> , <a href="https://ericnormand.me/guide/clojure-collections#sorted-set" target="_blank">ソート版の Set</a> - 順序によらず、すべての要素を等式で比較し、等式を比較する。</p>
+<p><strong>利用法</strong></p>
+<p>2 つ以上の値を比較するには、<code>=</code> 関数を使用します。その反対は <code>not=</code> です。</p>
+<p><strong>例</strong></p>
+<pre>(when (= [1 2 3] &#39;(1 2 3))
+  (println &#34;配列は同じ要素で等しい&#34;))
+
+(when (not= [1 2 3] [3 2 1])
+  (println &#34;配列が不揃いで順番が違う&#34;))
+
+(when (= {:a 1 :b 2} {:b 2 :a 1})
+  (println &#34;マップは同じキーと値を持つ場合、等しい&#34;))
+
+(when (not= {:a 1 :b 2} {:a 1 :b 3})
+  (println &#34;マップは異なる値で不等間隔である&#34;))
+
+(when (= #{1 2 3} #{3 2 1})
+  (println &#34;同じ値を持つ集合は等しい&#34;))
+</pre>
+<h3 is-upgraded><strong>Set からアイテムを削除する</strong></h3>
+<p>Set であれば、disj（disjoin の略で conjoin の反対）を使って非常に素早くアイテムを削除することができます。この関数が集合に対してのみ定義されている理由は、Vector や List から何かを取り除くには、シーケンスを 1 つずつ調べて、最初に何かを見つけ、次にそれを取り除く方法を考えなければならないからです（これもおそらく速くはないでしょう）。しかし Set であれば、すべてのアイテムを見ることなく、すばやく削除することができます。（注：HashMap からキーと値のペアを削除するには、dissoc 関数を使用します。）</p>
+<p>ドメインに求めるべき質問は次の通りです。</p>
+<ul>
+<li>値だけを知って、値を削除する必要があるのか？</li>
+</ul>
+<p><a href="https://ericnormand.me/guide/clojure-collections#set" target="_blank">Set</a> (または <a href="https://ericnormand.me/guide/clojure-collections#sorted-set" target="_blank">ソート版の Set</a>) - 指定された要素を削除する</p>
+<p><strong>利用法</strong></p>
+<p>要素を削除するには disj 関数を使用します。</p>
+<p><strong>例</strong></p>
+<p>スター・ウォーズ・クリスマス・パーティに参加表明をした人の集合があるとして、ダース・ベイダーをゲスト・リストから外したい場合：</p>
+<pre>(def guest-list #{&#34;Leia&#34; &#34;Han&#34; &#34;Luke&#34; &#34;Chewie&#34; &#34;Ackbar&#34; &#34;Darth Vader&#34;})
+
+(disj guest-list &#34;Darth Vader&#34;)</pre>
+<h3 is-upgraded><strong>シーケンスの分割</strong></h3>
+<p>長いシーケンスから部分的なシーケンスを素早く作成したい場合がありますが、 List はこのようなことができません。 List から部分列を作るには、シーケンスを調べてコピーを作らなければならないので、とても遅いのです。しかし、 Vector は素早く部分列を作ることができます。開始と終了のインデックスを指定すると、古いインデックスを基に新しいインデックスが作成されます。</p>
+<p>ドメインに聞きたいことは次の質問です。</p>
+<ul>
+<li>シーケンスを連続的に分割する必要があるのか？</li>
+</ul>
+<p><a href="https://ericnormand.me/guide/clojure-collections#vector" target="_blank">Vector</a> - 与えられたベクトルと開始および終了インデックスから部分 Vector を作成する</p>
+<p><strong>利用法</strong></p>
+<p>部分的な Vector を作成するには<code>、subvec</code> 関数を使用します。</p>
+<p><strong>例</strong></p>
+<p>例として、順序付きの Vector に対して二分探索を行います。</p>
+<pre>(defn binary-search
+  &#34;Return the index of the element, or nil if not found&#34;
+  ([vec el]
+   (binary-search vec el 0))
+  ([vec el offset]
+   (let [middle (quot (count vec) 2)
+         c (compare (get vec middle) el)]
+     (cond
+       (empty? vec)
+       nil
+
+       (zero? c)
+       (+ middle offset)
+
+       (pos? c)
+       (recur (subvec vec 0 middle) el offset)
+
+       (neg? c)
+       (recur (subvec vec (inc middle)) el (+ middle offset 1))))))
+
+(binary-search [:a :b :c :d :e] :d)</pre>
+<h3 is-upgraded><strong>包含のチェック</strong></h3>
+<p>ある値を持っていて、その値が自分のコレクションの中にあるかどうかを知りたいことがあります。ここで、各アイテムを順番に見ていき、探している値と等しいかどうかをチェックすることを想像してみてください。そんなことをしたら、どんなに時間がかかることでしょう。</p>
+<p>そんな時、Set が役に立ちます。 Set は、 Set の大きさに関係なく、その中に値があるかどうかをすぐに教えてくれます。</p>
+<p>さて、Clojure を始めたばかりの人がつまずく秘密をお教えしましょう。 Vector や HashMap も内包を確認することができます。ところが、内包の確認はキーだけなので、それだけは高速に処理できるのです。HashMap は、持っている値が HashMap の中のキーであるかどうかをチェックします。そして Vector は、その値が Vector の有効なインデックスであるかどうかをチェックします。基本的には、整数であるか、0 でないか、Vector の長さより小さいかです。</p>
+<p>ドメインに対する質問は以下の通りです。</p>
+<ul>
+<li>ある値がコレクションに含まれているかどうかを知る必要がありますか？</li>
+<li>キーが HashMap の中にあるかどうかを知る必要がありますか？</li>
+<li>インデックスが Vector の範囲内にあるかどうかを知る必要がありますか？</li>
+</ul>
+<p><a href="https://ericnormand.me/guide/clojure-collections#vector" target="_blank">Vector</a> - Vector の長さより小さい負でない整数を true を知らせる</p>
+<p><a href="https://ericnormand.me/guide/clojure-collections#hash-map" target="_blank">HashMap</a> (または <a href="https://ericnormand.me/guide/clojure-collections#sorted-map" target="_blank">ソート版の Map</a>) - 与えられた値が Map のキーである場合、true を知らせる</p>
+<p><a href="https://ericnormand.me/guide/clojure-collections#set" target="_blank">Set</a> (or <a href="https://ericnormand.me/guide/clojure-collections#sorted-set" target="_blank">ソート版の Set</a>) - 指定された値が Set に含まれる場合、true を知らせる</p>
+<p><strong>利用法</strong></p>
+<p><code>contains?</code> は、包含を確認するための関数です。</p>
+<p><strong>例</strong></p>
+<pre>;; それほど便利なものではないことは認めますが、あなたにもできるはずです
+(def breakfast [:eggs :juice :toast :coffee :bacon])
+
+;; 7番目があるかどうか調べる
+(contains? breakfast 6)
+
+(def meals {:breakfast [:eggs :juice :toast :coffee :bacon]
+            :lunch [:sandwich]
+            :dinner [:soup :salad :pasta :chicken]})
+
+(contains? meals :snack)
+
+(def fridge #{:milk :eggs :carrots :tomato})
+
+(contains? fridge :eggs)</pre>
+<h3 is-upgraded><strong>FIFO (先入れ・先出し方式)</strong></h3>
+<p>データ構造に値を入れて、入れたのと同じ順番で取り出したいなら、FIFO データ構造が必要でしょう。FIFO データ構造は必然的にシーケンシャルになりますが、末尾への追加と先頭からの削除を素早く行えることが保証されており、これはある意味特殊です。Clojure は Queue の実装を提供しています。</p>
+<p>Queue は producer/consumer パターンに最適です。プロデューサーは Queue に値を追加し、コンシューマーは Queue に残っている最も古いものを取得して使用することができます。</p>
+<p>あなたのドメインに問う質問は次の通りです。</p>
+<ul>
+<li>値を生産した順番に消費する必要があるのか？</li>
+</ul>
+<p><a href="https://ericnormand.me/guide/clojure-collections#queue" target="_blank">Queue</a> - 末尾に値を追加し、先頭から値を削除します</p>
+<p><strong>利用法</strong></p>
+<p>Queue に値を追加するには <code>conj</code> 関数、次の値を取得するには <code>peek</code> 関数、次の値を削除するには <code>pop</code> 関数を使用します。</p>
+<p><strong>例</strong></p>
+<p>タスクの Queue を管理してみましょう。</p>
+<pre>;; ClojureScript の場合
+(def tasks (atom cljs.core.PersistentQueue/EMPTY))
+;; Clojure の場合
+;; (def tasks (atom clojure.lang.PersistentQueue/EMPTY))
+
+(defn add-task! [task]
+  (swap! tasks conj task))
+
+(defn take-task! []
+  (let [[old new] (swap-vals! tasks pop)] ;; new in Clojure 1.9
+    (peek old)))</pre>
+<h3 is-upgraded><strong>LIFO (後入れ・先出し方式)</strong></h3>
+<p>さて、データ構造に追加した値のうち、最も新しいものを記録しておきたいことがあります。LIFO データ構造と呼ばれるものがあります。何かを取り出すとき、それは最後に入れたものです。これは紙の束のようなもので、メモをして一番上に置いておくのです。これは紙の束のようなもので、メモをして一番上に置くと、それを見ていくときに、最後に書いたメモが一番上に来るというものです。スタックはとても便利です。スタックは非常に便利で、同じ端から素早く追加したり削除したりすることができます。Clojure では List を使います。 List には先頭への高速追加<code>にcons</code> 関数、高速削除に <code>rest</code> 関数があります。</p>
+<p>しかし、Clojure は List と Vector で動作するスタックのための、より慣用的な関数を提供します。</p>
+<p>あなたのドメインに尋ねるべき質問 は次の通りです。</p>
+<ul>
+<li>新しい値を古い値より先に消費する必要があるのか？</li>
+</ul>
+<p><a href="https://ericnormand.me/guide/clojure-collections#vector" target="_blank">Vector</a> - 末尾に値を追加し、末尾から値を削除します</p>
+<p><a href="https://ericnormand.me/guide/clojure-collections#list" target="_blank">List</a> - 先頭に値を追加し、先頭から値を削除します</p>
+<p><strong>利用法</strong></p>
+<p>項目を追加するには <code>conj</code>  関数、直近の項目を取得するには <code>peek</code> 関数、直近の項目を削除するには <code>pop</code> 関数を使用します。</p>
+<p><strong>例</strong></p>
+<p>取り組みたいことを記録しておきましょう。私たちは新しいことを重視しています。つまり、最後に追加するのは、最も重要だと思うものです。</p>
+<pre>(def todos (atom []))
+
+(defn add-todo! [task]
+  (swap! todos conj task))
+
+(defn get-todo! []
+  (let [[old new] (swap-vals! todos pop)] ;; new in Clojure 1.9
+    (peek old)))</pre>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="利用法のパターン" duration="0">
+        <p>他人のコードを読むときは、パターンを考慮しなければならないでしょう。彼らはそれを書いたとき、これらのすべての決定を行ったかもしれません。(しかし、幸運なことに、ほとんどの使い方が実際に陥る、非常に一般的なパターンがあることが判明しています。この一握りのパターンを知っていれば、あなたはマスターへの道を順調に進んでいることでしょう。これらのパターンを使って、あなたのコードを読みやすくしましょう。</p>
+<h3 is-upgraded><strong>Entity</strong></h3>
+<p>ソフトウェアでは、あるエンティティについて知っているデータをモデル化することはよくあることです。例えば、ある人物に関するすべての情報（名前、住所、身長、生年月日など）をモデル化します。例えば、名前、住所、身長、生年月日など、その人に関するすべての情報をフォームに記入するようなものです。フィールドの名前はみんな同じで、値は人それぞれです。</p>
+<p>Clojure では、このデータを HashMap に入れることになります。フォームフィールドラベルがキーで、個人データが値です。例を見てみましょう。</p>
+<pre>{:name &#34;Eric Normand&#34;
+ :address &#34;123 Main St.&#34;
+ :height 1.6
+ :date-of-birth #inst &#34;1981-07-18&#34;}</pre>
+<p>キーは通常キーワードで、値はデータに適した型であれば何でもよく、値の型は混在できます。あるキーの値が欲しいときはいつでも、get  関数を用いて <code>(get person :name)</code> で取り出すことができるし、関数 <code>position</code> 関数を用いて <code>(:name person)</code> でキーワードを直接使うことができます。</p>
+<p>誰かの情報を変更したり、新しい情報を追加したりするには<code>、assoc</code> 関数を使います。</p>
+<pre>(assoc person :name &#34;John Smith&#34;)</pre>
+<p>一部の情報を削除する場合は<code>、dissoc</code> 関数を使用します。</p>
+<pre>(dissoc person :name)</pre>
+<h3 is-upgraded><strong>Variant Entity</strong></h3>
+<p>上記の Entity パターンを使っていても、どのマップがどの種類の Entity に属しているのかわからなくなることがよくあります。同じような属性の Set を持つかもしれません。それは従業員なのか顧客なのか、借方なのか貸方なのかなどです。</p>
+<p>さまざまな種類のエンティティを同じような関数に渡しているうちに、それぞれのエンティティに異なる処理が必要になった場合、それがどの種類のエンティティなのかを判断する便利な方法が必要です。そのためには、バリアントを示すキーと値のペアを追加するだけで可能です。</p>
+<pre>{:relationship :client
+ :name &#34;Eric Normand&#34;
+ :address &#34;123 Main St.&#34;
+ :height 1.6
+ :date-of-birth #inst &#34;1981-07-18&#34;}
+
+
+{:relationship :employee
+ :name &#34;Jane Smith&#34;
+ :address &#34;532 Oak St.&#34;
+ :height 1.2
+ :date-of-birth #inst &#34;1954-02-01&#34;}</pre>
+<p>上のコードでは、クライアントと従業員を区別するために :relationship キーワードを 使っています。これをVariant の識別子と呼ぶことができます。好きなキーを使うことができます。</p>
+<p><strong>コードの匂い</strong></p>
+<p>Variant の識別子として使われている :type のような一般的な言葉に気をつけましょう。一般的な単語は、異なる Variant の間に十分な一貫性がありません。</p>
+<p>例えば、異なる形状 (三角、四角、円など) をモデル化している場合、それらはすべて非常に関連性の高いものです。しかし、それらはおそらくログイン方法（クッキー、Basic 認証、JSON Web Token、OAuth2 など）とは全く関連していません。それらを区別するために同じ言葉（:type）を使うのは混乱を招くでしょう。</p>
+<pre>{:type :circle
+ :radius 15}
+
+{:type :cookie
+ :session-id &#34;23332&#34;}</pre>
+<p>これらは本当に一緒のものなのでしょうか？そうでないとは言い切れません。</p>
+<p>一般的な言葉ではなく、より具体的な言葉を使いましょう。多くの場合、そのカテゴリを表す単語が最適です。これは明確で、異なるカテゴリのエンティティを混乱させることはありません。</p>
+<pre>{:shape :circle
+ :radius 15}
+
+{:login-method :cookie
+ :session-id &#34;23332&#34;}</pre>
+<p><strong>エンドコードの匂い</strong></p>
+<p><strong>アンチパターン</strong></p>
+<p>エンティティの種類が全く違うのに、それを切り替えるのはちょっと悪い習慣であることに注意してください。同じ関数で異なる種類のエンティティを扱えるのはとても便利だと思うかもしれません。例えば、コーヒーショップのソフトウェアが在庫を追跡し、注文に対する支払いを処理するとします。そこで、次のような支払い用のエンティティを用意することができます。</p>
+<pre>{:order-id 123
+ :items [{:item :coffee :price 3}]
+ :total 3
+ :payment :cash}</pre>
+<p>そして、在庫を数えながら、各アイテムを測定すると、次のようなエンティティが作成されます。</p>
+<pre>{:item :dark-roast
+ :quantity 4
+ :unit :kg}
+</pre>
+<p>そして、賢いプログラマーとして、その両方がデータベースに保存される必要があると自分で考えます。<code>save</code> という関数を作り、それが何を持っているかを把握しようとし、そして正しい場所に保存することになります。</p>
+<p>しかし、これは間違いです。両方のエンティティに同じ <code>save</code> 関数を使うべきではありません。コードを注意深く分析すると、各エンティティタイプのコードパスが決して交差しないことがわかります。各ポイントで、あなたは自分が何を得たかを知っています。しかし、それをこの <code>save</code> 関数に渡すまでは、<code>save</code> 関数は自分が何を得たかを再び考えなければなりません。だから私はこれをアンチパターンと呼んでいるのです。</p>
+<p>2 つのワークフローを見てみましょう。注文を満たすには、次のような流れになります。</p>
+<ul>
+<li>オーダーの保存 (未払い)</li>
+<li>商品（コーヒーなど）を提供する</li>
+<li>支払いを受ける</li>
+<li>支払いを確認する</li>
+<li>支払いを処理する</li>
+<li>注文を保存する(支払い済み)</li>
+</ul>
+<p>そして、在庫のチェックをすると、次のようになります。</p>
+<ul>
+<li>棚にある各商品について</li>
+</ul>
+<p>    ・商品の数量を数える</p>
+<p>    ・在庫確認の保存</p>
+<p>この 2 つのプロセスはどちらも「save」という言葉を使い、同じ場所（データベース）に移動することもあるため、その違いを「抽象化」したくなるかもしれません。しかし、この 2 つの共通点はほとんどありません。「在庫チェックの保存」は「注文の保存」とは全く別の処理に属します。それぞれのプロセスは別個のものなのです。注文プロセスを流れるデータが在庫プロセスのデータと混同されることはありません。ですから、この 2 つの操作は別個のものだと考え、区別しておく必要があります。次のように、別々の関数を作る必要があります。</p>
+<pre>(defn save-inventory-count [inventory-count]
+   ...)
+
+(defn save-payment [payment]
+   ...)</pre>
+<p>Variant Entity パターンを使用しない方が、長い目で見れば頭痛の種を減らすことができます。この場合、<code>:type</code> キーは追加しないでください。しかし、このアンチパターンを使っている人もいるので、注意する必要があります。</p>
+<p><strong>アンチパターンの終了</strong></p>
+<p>それがアンチパターンなら、本当のパターンは何でしょうか。ここでは、Variant Entity パターンをどのように適用すべきかを説明します。</p>
+<p>私たちのコーヒーショップでは、現金、クレジットカード、デビットカード、小切手、ギフトカードが利用できます。そして、それぞれの支払いには、それぞれ異なる情報が必要です。</p>
+<p>現金には情報は必要ありません。ただの冷たい現金です。</p>
+<pre>{:payment-method :cash}</pre>
+<p>クレジットカードは、カードに記載されている名前、カード番号、有効期限、カードコードが必要です。デビットカードも同様です。</p>
+<pre>{:payment-method :credit ;; or :debit
+ :name &#34;Jane Doe&#34;
+ :number &#34;12345...&#34;
+ :expiration &#34;11/19&#34;
+ :code &#34;333&#34;}</pre>
+<p>小切手には、ルーティング番号、口座番号、小切手番号、日付が必要です。</p>
+<pre>{:payment-method :check
+ :routing &#34;123...&#34;
+ :account &#34;00333.&#34;
+ :check-number &#34;445&#34;
+ :date &#34;3/4/2019&#34;}</pre>
+<p>そして最後は、社内用ギフトカードのシステムです。</p>
+<pre>{:payment-method :gift-card
+ :card-id &#34;333244...&#34;}</pre>
+<p>これらの支払方法の場合、先ほどの支払・在庫管理の場合と比較すると、同じ目的を達成するための異なる方法に過ぎないことに注目しましょう。システムが処理する支払い方法が異なる変化版と呼ぶこともできます。それぞれのケースには分岐があり、すぐにメインのワークフローに収束していきます。</p>
+<p>ワークフローの手順は次の通りです。</p>
+<ul>
+<li>購入を記録する</li>
+<li>商品（コーヒーなど）を提供する</li>
+<li>代金を受け取る</li>
+<li>支払いを確認する</li>
+</ul>
+<p>    ・現金：手形のセキュリティチェック</p>
+<p>    ・クレジットカード/デビットカードを承認する</p>
+<p>    ・小切手：金額、署名、小切手使用禁止でないことを確認する</p>
+<p>    ・ギフトカードの残額を確認する</p>
+<ul>
+<li>支払いの処理を行う</li>
+</ul>
+<p>    ・現金で支払う</p>
+<p>    ・現金を引き出しに入れ、おつりを渡す</p>
+<p>    ・クレジット/デビット：支払いを確定する</p>
+<p>    ・小切手：小切手入れに入れ、次回銀行へ行くときに入金する</p>
+<p>    ・ギフトカード：合計金額を引き落とす</p>
+<ul>
+<li>購入した商品に支払済みマークをつける</li>
+</ul>
+<p>このワークフローには 6 つのステップがあり、そのうち 4 つは支払いタイプに関係なく同じで、2 つは支払いタイプに依存します。これは Variant Entity を使用するための有効なケースです。この例では、Variant の識別子は <code>:payment-method</code> です。</p>
+<p>また、一般的な言葉である :type を使う必要がないことにも注意してください。なぜなら、これらのケースはすべて共通のカテゴリに分類されるほど類似しているからです。それらは支払い方法です。この特異性は、Variant Entity パターンが適切であることを示す良いサインです。</p>
+<h3 is-upgraded><strong>Index</strong></h3>
+<p>在庫確認を終えたら、まとめたいことがあります。「今日一日分の製品 X があるか、それとも代替品を探す必要があるか」といったことをすぐに判断できるようにしようと思います。本の巻末にある索引は、あるトピックをどのページで探せるかを教えてくれるものです。つまり、トピックがあればページの集合がえられます。同様に品目から数量への索引も欲しいところです。品目から数量がわかるようにしましょう。</p>
+<p>では、構築しましょう。</p>
+<pre>{:dark-roast  {:quantity 4 :unit :kg}
+ :light-roast {:quantity 2 :unit :kg}
+ :milk        {:quantity 3 :unit :gallon}}</pre>
+<p>このパターンについて、いくつか注意することがあります。</p>
+<ul>
+<li>今回も Map を使用すること</li>
+<li>キーは同じ型の識別子であること</li>
+<li>値はすべて同じ型（または構造体）であること</li>
+</ul>
+<p>以前作成した電話番号の索引と同じです。あの例では、キーはすべて同じ型（人名）で、値もすべて同じ型（電話番号）でした。</p>
+<h3 is-upgraded><strong>Accumulator Index</strong></h3>
+<p>非常に一般的な Index として、Accumulator Index と呼ばれるものがあります。これは、主にキーの下に値を蓄積するために使用されます。通常の Index はキーと値を関連付けますが、Accumulator Index は時間をかけて値を蓄積していきます。</p>
+<p>値を更新するには、通常、update 関数を使用します。</p>
+<p>では、作ってみましょう。例えば、1 週間の間に各種類の食べ物を何回食べたかをカウントするとします。ここでは、それぞれの食べ物の回数を HashMap に蓄積します。</p>
+<pre>(def food-log [:egg :toast :milk :chicken :egg :carrot :orange :milk])
+
+(reduce (fn [idx food]
+          (update idx food (fnil inc 0)))
+  {} food-log)</pre>
+<p>コレクションに蓄積することもできます。偶数と奇数を分けてみましょう。</p>
+<pre>(def numbers [3 4 4 3 2 1 2 3 4 5 6 5 4 3 2 4 3 6 7 8 6 44 6 6])
+
+(reduce (fn [idx n]
+          (update idx
+            (if (even? n) :even :odd)
+            (fnil conj [])
+            n))
+  {} numbers)</pre>
+<h3 is-upgraded><strong>Dispatch table</strong></h3>
+<p>ある値によって異なるコードを実行する必要がある場合はどうなるのでしょうか。例えば、コーヒーショップの注文を満たすために、キッチンロボットをプログラムする必要があるとします。大きな case 文を書くことができます。</p>
+<pre>(defn prepare [item]
+  (case item
+    :coffee (brew-coffee)
+    :tea    (make-tea)
+    :bagel  (prepare-bagel)
+    ))</pre>
+<p>それはうまくいくでしょう。しかし、新しいアイテムを追加するには、コードを修正する必要があります。修正せずに、条件の構造を見てみましょう。キーワードを与えて、関数を呼び出しています。キーが与えられたら、その値を調べるようなものです。そのためには、HashMap が必要です。</p>
+<pre>(def prep-routines {:coffee brew-coffee
+                    :tea    make-tea
+                    :bagel  prepare-bagel})
+
+(defn prepare [item]
+  (let [f (get prep-routines item)] ;; look up prep-routine
+    (f)))                           ;; then call it</pre>
+<p>私たちが行ったのは、ディスパッチテーブルを作ることです。HashMap に新しいアイテムを簡単に追加することができます<code>。atom</code> 関数でラップすれば、動的にすることもできます。</p>
+<h3 is-upgraded><strong>変換テーブル</strong></h3>
+<p>ある決まった数の値を他の決まった数の値に変換することがあります。例えば、HTTP メソッドを CRUD（Create Read Update Delete）操作に変換する場合を見てみましょう。これを行うための関数を書くことができます。あるいは、このように変換テーブル (conversion table) にデータとして格納することもできます。</p>
+<pre>(def op-table {:post   :create
+               :get    :read
+               :put    :update
+               :delete :delete})</pre>
+<p>それから<code>、get</code> 関数で変換するか、関数のように op-table を呼び出すだけでいいのです。</p>
+<pre>(op-table :get) ;=&gt; :read</pre>
+<h3 is-upgraded><strong>Tuple</strong></h3>
+<p>Tuple は、グループ化する必要があるいくつかのデータを持っているときに非常に便利ですが、名前付きキーを持つ Entity パターンまで行くのはやりすぎのように思えます。Clojure では Tuple は簡単です。Vector を使い、その中に値を入れます。Vector の中での値の位置が、その値が何を意味するのかを教えてくれます。</p>
+<p>Clojure のコア・ライブラリには、<code>re-find</code> 関数という素晴らしい例があります。</p>
+<pre>(re-find #&#34;aa(b+)(c+)&#34; &#34;aabbccc&#34;) =&gt; [&#34;aabbccc&#34; &#34;bb&#34; &#34;ccc&#34;])</pre>
+<p>戻り値が Vector であることに注目してください。最初に返されるのはマッチ全体、つまり正規表現でマッチした最大の文字列です。次は最初のグループ（括弧の中）のマッチで、その次に第 2 グループのマッチと続きます。これらの要素の意味は、その位置によって決まることに注目しましょう。</p>
+<p>これはクールなパターンだが、Entity と比較して不利な点があります。まず、Tuple が長くなると、各値の意味を理解するのが難しくなる点です。次の例を確認してみてください。</p>
+<p>コードの匂い：長いタプル</p>
+<pre>[&#34;Eric&#34; &#34;Normand&#34; &#34;443-2222&#34; &#34;23 Jones St&#34; &#34;eric@lispcast.com&#34; nil]</pre>
+<p>長くなってくると、すべての位置を覚えようとするのを想像してみてください。その nil は正しい位置にあるのだろうか？長くなればなるほど、それが正しいかどうかを判断するのは難しくなります。3 つ以上のアイテムがある場合は、Entity を使うべきでしょう。</p>
+<p><strong>コードの臭いを消す</strong></p>
+<p><strong>コードの臭い：ローカルコンテキストから逃れる Tuple</strong></p>
+<p>これに関連して、もしあなたがこの例を実際に見たら、すべての値の意味を理解できるでしょうか？例えば、nil は何を意味するでしょうか？エンティティは各値に名前を付けるので、エンティティの方が自給自足で人間が読みやすいです。このタプルをローカルで使っていて、他のライブラリに流出することがないのであれば、おそらく問題ないでしょう。しかし、このデータがどこかに保存されたり、公開 API の一部になったりするのであれば、Entity の方がいいでしょう。</p>
+<p>例えば、re-find 関数の返り値は、re-find 関数を呼び出した場所のすぐ近くで使うべきです。もしそれを他のものに渡したら、他のものはそれをどう解釈すればいいのかわかるでしょうか？おそらくそうではないでしょう。ここで良いテストがあります。もしあなたがこのタプルを取って、それを友人にメールしたら、彼らはそれが何を意味するのか分かるでしょうか？</p>
+<p><strong>コードの臭いを消す</strong></p>
+<p>最後に、タプルは将来を見越したものではありません。どうやって新しい値を追加するのでしょうか？新しい値は最後に追加しなければならないので、長くなってしまいます。タプルは、要素の順番でコードが結合されます。もしタプルが定義された順番が変われば、インデックスによって値にアクセスするすべてのコードが変更されなければなりません。エンティティはキーで値を参照するので、この問題はありません。</p>
+<h3 is-upgraded><strong>Variant Tuple</strong></h3>
+<p>Variant Entity を作ることができるように、Variant Tuple を作ることができます。上記の警告はすべてまだ適用されます。しかし、Tuple はまだ有用であり（短く、ローカルスコープで使用する場合）、Variant の種類はちょうどあなたが探しているものである可能性があります。</p>
+<p>通常のタプルと同様に、Variant タプルは Vector です。違いは、扱っている Variant （別名ケース）を特定するために最初の要素を予約することです。</p>
+<p>たとえば、あるファイルを見つけるために様々な方法を表現する場合、このシステムを使用することができます。</p>
+<pre>[:url &#34;http://storage.com/my-file.txt&#34;]
+[:disk &#34;/home/eric/my-file.txt&#34;]
+[:paper    5    3      12]
+        ;; ^row ^shelf ^box</pre>
+<p>Tuple の最初の要素は、私たちが手に入れたものの種類を表します。その後に、その種類に関連するデータが続きます。どんな種類のものがあるのかを知るのは簡単です。最初の要素を取得して、それにスイッチを入れるだけです。</p>
+<h3 is-upgraded><strong>Multi-comparison</strong></h3>
+<p>ある値と他の多くの値とを比較したいとします。どれかが等しいか？例えば、あなたは猿の帽子を作っている巨大企業で働いていて、317 人の副社長がいて、面白半分に彼らの名前がシステムにハードコードされているとしましょう。誰が副社長であるかどうかをテストする関数を書く必要があります。</p>
+<p>次のようにできます。</p>
+<pre>(defn vp? [name]
+  (or (= name &#34;John Jacobsson&#34;)
+      (= name &#34;Linda Laurens&#34;)
+      (= name &#34;June James&#34;)
+      (= name &#34;Fred Franklin&#34;)
+      ...))</pre>
+<p>さて、多くの理由から、これは最悪です。まず第一に、コードがたくさんあることです。次に、もし名前がどれにも一致しない場合はどうなるのでしょうか？その場合でも、317 個すべてと名前を比較しなければならず遅いです。これは線形で、実際、リストを使うよりは好ましいです。私たちが本当にしたいことは、名前がコレクションの中にあるかどうかを本当に素早く検索することです。そこで幸運なことに、そのための完璧なツールがあります。Set です。</p>
+<pre>(def vice-presidents #{&#34;John Jacobsson&#34;
+                       &#34;Linda Laurens&#34;
+                       &#34;June James&#34;
+                       &#34;Fred Franklin&#34;
+                       ...})
+
+(defn vp? [name]
+  (contains? vice-presidents name))</pre>
+<p>この方がずっと速いでしょう。封じ込めのチェックは非常に高速な操作です。</p>
+<p>以下のように、Set だけを直接関数として使う人もいるでしょう。</p>
+<pre>(filter vice-presidents meeting-attendance)</pre>
+<p>そして、多くの人がインラインで行います。</p>
+<pre>(defn vowel? [letter]
+  (#{a e i o u} letter))</pre>
+<p>これは、すべての値が真理である場合にのみ動作することに注目してください。何らかの理由で nil や false を保存している場合はうまくいきません。</p>
+<pre>(#{false} false) ;=&gt; false
+(#{nil} nil)     ;=&gt; nil</pre>
+<p>これらは、値が内部に含まれている場合でも、虚偽を返すことに注目してください。</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Immutability, Persistence, Transients" duration="0">
+        <p>Clojure のコレクションは変更不可能です。構築された後、それらを変更する方法はありません。</p>
+<p>Clojure はコピーオンライトの規律に従います。つまり、何かを変更するたびに（HashMap に新しいキーと値のペアを追加するように）、実際に変更されたコピーを作成するのです。</p>
+<p>しかし、このようなコピー作業には時間がかかるのではないでしょうか？</p>
+<p>コレクションを直接変更するよりは遅いです。例えば、Clojure の HashMap の修正されたコピーを作成すると、Java の HashMap を修正するよりもずっと遅くなります。しかし、Java の HashMap のコピーを作るよりは速いです。Clojure の copy-on-write の規律は、Java で行うより速いです。</p>
+<p>どうやってそうしているのでしょうか？</p>
+<p>Clojure のコレクションは永続的です。これはディスクに書き込まれることを意味しません。それは、共通の構造を共有することを意味します。HashMap は、ルートノード、ブランチノード、リーフノードを持つツリーとして実装されています。HashMap に 1,000 の Key-Value ペアが入っていると想像してください。もし Key-Value ペアを 1 つ追加しても、ツリー内のほとんどのノードは正しいままです。つまり、修正された HashMap はそれらを再利用するだけなのです。元の HashMap が使用するメモリの大部分は、変更後のコピーでも使用されます。</p>
+<p>これらすべては、copy-on-write が比較的安価であることを意味します。Clojure は高速で不変のデータ構造を持つことができます。そして、その性能をほとんど気にすることなく、それらを利用することができます。</p>
+<p>しかし、時にはコードの一部を高速化する必要があります。そして、時にはコレクションに多くの変更を加え、多くのコピーを作成し、再び変更されたときに捨てられることがあります。Clojure はこれに対する解決策を持っています。それは Transient と呼ばれるものです。</p>
+<p>Transient とは、データ構造の中間コピーを作らないようにする方法です。この方法によって、コードが高速化されます。基本的には、変更可能なコピーを作成し、そのコピーを変更し、そしてそれを不変なものに戻すことによって、このような処理を行っています。</p>
+<p>以下は、Set に多くの変更を加えるコードです。</p>
+<pre>;; 100万個の数字をセットに追加する
+(time (reduce conj #{} (range 1000000)))
+&#34;Elapsed time: 1456.145802 msecs&#34;</pre>
+<p>これを Transient を使うことで高速化することができます。</p>
+<pre>(time (persistent! (reduce conj! (transient #{}) (range 1000000))))
+&#34;Elapsed time: 428.903734 msecs&#34;</pre>
+<p>答えは同じですが、トランジェントバージョンの方が 3 倍速いです。</p>
+<p>やり方は以下の通りです。</p>
+<ol type="1" start="1">
+<li>コレクションで transient を呼び出す。これはトランジェントコピーを作成します。</li>
+<li>通常と同じ操作を行いますが、トランジェントを扱うために作られました。</li>
+<li>最後に、persistent! 関数で不変のコレクションに戻します。</li>
+</ol>
+<p>Transient は、コードを完全に信頼できる場所で、ローカルにのみ使用すべきです。トランジェント・コレクションは、決して自分のコントロールから外してはいけません。</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="atom での使用方法" duration="0">
+        <p>Clojure のデータ構造は変更不可能です。そして、Clojure は変更可能な変数を提供しません。我々は、何らかの方法で状態の変化をモデル化する必要があります。この必要性は、Queue を使用するときに特に顕著になります。プロデューサーが Queue に値を追加し、コンシューマーが値を取得する場合、明らかに何かを変更する必要があります。</p>
+<p>そのための最良の方法は、atom を使用することです。atom については、私の concurrency のガイドで詳しく説明しています。ここでは、Queue で atom を使って producer/consumer パターンを実現する方法を簡単に説明します。</p>
+<pre>(def queue (atom clojure.lang.PersistentQueue/EMPTY))
+
+(defn enqueue! ;; mutation, so let&#39;s use a !
+  &#34;キューの末尾に値を追加する&#34;
+  [value]
+  (swap! queue conj value)
+  nil) ;; we want to return nil
+
+(defn dequeue!
+  &#34;キューから最初の項目を削除して返す&#34;
+  []
+  (let [[old new] (swap-vals! queue pop)] ;; pop removes the first
+    (peek old))) ;; 最初の値を返す</pre>
+<p>Clojure 1.9 の新機能である swap-val を使用していることに注意してください。古いバージョンの Clojure では、これはもっと厄介なものでした。この swap-vals! 版をお勧めします。このようなユースケースは、まさにそれが追加された理由です。</p>
+<p>しかし、念のため、1.9 以前のClojure バージョンで動作する実装を紹介します。</p>
+<pre>;; we use a Tuple to store the previous first value and the Queue.
+(def queue (atom [nil clojure.lang.PersistentQueue/EMPTY]))
+
+(defn enqueue! ;; mutation, so let&#39;s use a !
+  &#34;キューの末尾に値を追加する&#34;
+  [value]
+  (swap! queue update 1 conj value) ;; add a value to the queue (index 1)
+  nil) ;; return nil
+
+(defn dequeue!
+  &#34;キューから最初の項目を削除して返す&#34;
+  []
+  (let [[val] (swap! queue (fn [[_ queue]]
+                             [(peek queue) (pop queue)]))]
+    val))</pre>
+<p>それほど悪くはありませんが、自分で対処するには少し面倒ですね。</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="どのコレクションにも当てはまらないとき" duration="0">
+        <p>なるほど、わかりました。穴を探し、その特性を把握し、その穴を埋めるコレクションを探せばいいんだ。なぜなら、そのコレクションは補完的な特性を持っているからだ。でも、それが見つからなかったとしたら？</p>
+<p>例えば、キーで高速に検索することと、重複を記憶して追加した順番を覚えておくことの両方が必要な場合はどうでしょう？そのためのデータ構造がないんです!</p>
+<p><strong>解決方法</strong></p>
+<p>私がこの問題を解決する方法は、欲しいプロパティをすべて取得するために組み合わせることができる 2 つのコレクションを見つけることです。</p>
+<p>この場合、HashMapでキーによる検索を行い、Vector で重複や順序を記憶させることができます。これをハイブリッドコレクションと呼ぶことにしましょう。</p>
+<p>以下は、私のハイブリッドコレクションの簡単な実装です。</p>
+<pre>(def empty-hybrid {:map {}
+                   :vec []})
+
+;; 新要素の追加方法
+(defn hybrid-assoc [coll key value]
+  (-&gt; coll
+    (update :map assoc key value) ;; store in the map
+    (update :vec conj key)))      ;; remember the key
+
+(defn hybrid-get [coll key]
+  (get-in coll [:map key]))
+
+;;シーケンスを得るために、ベクトルの各キーの値を調べる
+(defn hybrid-seq [coll]
+  (seq (map (:map coll) (:vec coll))))</pre>
+<p>必要であれば、これを公式にするために新しい型を deftype することもできます。これはあなたにお任せしますが、<a href="https://gist.github.com/david-mcneil/1684980" target="_blank">新しい Map 型の実装</a>を参考にしてみてください。</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Clojure の構文における Vextor と List の比較" duration="0">
+        <p>Clojureで List を使う構文と Vector を使う構文の違いは何かと聞かれたことがあります。例えば、let 形式では全体を括弧で囲みますが、束縛は角括弧で囲みます。</p>
+<pre>(let [a 1] ;; square
+ ...)      ;; round</pre>
+<p>関数の定義もありますね。</p>
+<pre>(defn myfn [arg1 arg2] ;; square
+  ...)                 ;; round</pre>
+<p>意識的な設計上の判断だと思います。List は S 式を表すのに使われます。それらは、特殊なフォーム、マクロ呼び出し、または関数呼び出しのいずれかです。しかし、特殊なフォームやマクロの内部では、Clojure は物事をグループ化するために Vector を使用します。丸括弧と角括弧を交互に使うことで、何に注意を払えばいいのかが明確になります。</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="遅延とシーケンス" duration="0">
+        <p>Clojure のシーケンス関数は遅延です。つまり、シーケンスの全てを一度に評価することはありません。その代わり、シーケンスの一部だけを評価し、残りは後回しにすることができます。そして、その後来ないかもしれないので、多くの計算を節約することができます。また、無限列（例えば、すべての素数）やまだ起きていないこと（例えば、まだダウンロード中のファイルの残りの行）を表現することもできます。</p>
+<p>遅延をサポートするために、シーケンス関数<code>（map</code>, <code>filter</code>, <code>take</code> など）はすべて遅延を持ちます。これは最高の設計とは言えません。気をつけなければならない奇妙でゴチャゴチャしたことがたくさんあります。<a href="https://ericnormand.podia.com/beginning-clojure" target="_blank">私の遅延シーケンスに関する講座</a>で、それらを解説しています。あなたが好むと好まざるとにかかわらず、これらは Clojure に存在します（そして、あなたの目の前にあります）。あなたはそれらを無視することはできないので、彼らと友達になるべきです。</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="コレクションとシーケンスの比較" duration="0">
+        <p>Clojure を学び始めた頃、似たような関数の間で引数の順序が統一されていないことに違和感を覚えました。どういうことかというと、次のようなことです。</p>
+<pre>(map f coll)    ;; コレクションは最後に来る
+(update coll f) ;; コレクションは最初に来る</pre>
+<p>特に、学習している最中は、記憶が定着していないため、このような矛盾に悩まされることがあるのです。</p>
+<p>しかし、人に話を聞いているうちに、実は一貫性があることが分かってきました。でも、それには少し違う考え方が必要なのです。</p>
+<p><strong>ポイントは？</strong></p>
+<p>「シーケンス操作」と「コレクション操作」に分けて考えることです。</p>
+<p>シーケンス操作は、引数をシーケンスに変換し、特定の型を返します<code>。map</code>, <code>filter</code>, <code>take</code>, <code>drop</code>, <code>group-by</code>, <code>frequencies</code> などがこれにあたります。すべてのシーケンス操作はシーケンスを最後に受け取ることに気づくでしょう。</p>
+<p>コレクション操作は、ある特定の型のコレクションを受け取り、同じ型を返します。つまり、Map で <code>update</code> を行うと、新しい Map が返されます。Vector に対して update を行うと、新しい Vector が返されます。これらの操作が <code>update</code>, <code>dissoc</code>, <code>assoc</code> などです。</p>
+<p>このシーケンスとコレクションの区分があるからこそ、Clojure では <code>(cons value sequence)</code> と <code>(conj collection value)</code> という奇妙なものを目にするのです。引数は逆に表示されます<code>。cons</code> はシーケンスに作用し、conj はコレクション一般に作用します。</p>
+<p>そして、キーがわかったので、いくつかのものが本当にうまく並んでいることがわかります。スレッドマクロを使用している場合、<code>-></code> (thread first) マクロはコレクション操作で非常によく機能し、<code>->></code> (thread last) マクロはシーケンス操作でよりよく機能します。</p>
+<p>また、<code>swap!</code> が受け取る関数の引数の順番は、コレクション関数ではとてもうまくいきます。以下はその例です。</p>
+<pre>(swap! some-atom-with-a-map update-in [:a :b :c] inc)</pre>
+<p><code>swap!</code> はコレクションを第一引数にとるので、<code>update-in</code> には最適です。では、シーケンス操作の場合を見てみましょう。<code>swap!</code> はコレクションを第一引数にとるので、<code>update-in</code> には最適です。では、シーケンス操作の場合を見てみましょう。</p>
+<pre>(swap! some-atom-with-a-sequence (fn [s] (map inc s)))</pre>
+<p><code>map</code> の呼び出しを関数でラップして、引数の順番を入れ替えなければなりません。これはあまり便利ではないし、一般的でもありません。</p>
+
+
+      </google-codelab-step>
+    
+  </google-codelab>
+
+  <script src="https://storage.googleapis.com/codelab-elements/native-shim.js"></script>
+  <script src="https://storage.googleapis.com/codelab-elements/custom-elements.min.js"></script>
+  <script src="https://storage.googleapis.com/codelab-elements/prettify.js"></script>
+  <script src="https://storage.googleapis.com/codelab-elements/codelab-elements.js"></script>
+  <script src="//support.google.com/inapp/api.js"></script>
+
+</body>
+</html>

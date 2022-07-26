@@ -1,0 +1,21 @@
+{
+  "environment": "web",
+  "format": "html",
+  "prefix": "https://storage.googleapis.com",
+  "mainga": "UA-49880327-14",
+  "updated": "2022-07-26T09:48:04Z",
+  "id": "clojure-data-structures-tutorial",
+  "duration": 0,
+  "title": "Clojure Data Structures Tutorial(邦訳)",
+  "summary": "",
+  "source": "1zZ6Z9jlsw3hPeqyuD4W-KJdobpiFV-33-5NoLNdgPm4",
+  "theme": "clojure",
+  "status": [
+    "draft"
+  ],
+  "category": [
+    "Clojure"
+  ],
+  "tags": [],
+  "url": "clojure-data-structures-tutorial"
+}
