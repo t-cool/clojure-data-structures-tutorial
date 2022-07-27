@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
   <meta name="theme-color" content="#4F7DC9">
   <meta charset="UTF-8">
-  <title>Clojure Data Structures Tutorial(邦訳)</title>
+  <title>Clojure Data Structures Tutorial（邦訳）</title>
   <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Source+Code+Pro:400|Roboto:400,300,400italic,500,700|Roboto+Mono">
   <link rel="stylesheet" href="//fonts.googleapis.com/icon?family=Material+Icons">
   <link rel="stylesheet" href="https://storage.googleapis.com/codelab-elements/codelab-elements.css">
@@ -23,7 +23,7 @@
   <google-codelab-analytics gaid="UA-49880327-14"></google-codelab-analytics>
   <google-codelab codelab-gaid=""
                   id="clojure-data-structures-tutorial"
-                  title="Clojure Data Structures Tutorial(邦訳)"
+                  title="Clojure Data Structures Tutorial（邦訳）"
                   environment="web"
                   feedback-link="">
     
@@ -31,7 +31,7 @@
         <p>---------------------------------------------------------------------------------------------------------------------</p>
 <p>本記事は、Eric Normand さんに翻訳と共有の許可をいただいています。</p>
 <p>原文は以下のページをご参照ください。</p>
-<p><strong>Clojure Data Structures Tutorial / Eric Normand 著</strong></p>
+<p><strong>Clojure Data Structures Tutorial / Eric Normand</strong></p>
 <p><a href="https://ericnormand.me/guide/clojure-collections" target="_blank"><strong>https://ericnormand.me/guide/clojure-collections</strong></a></p>
 <p>--------------------------------------------------------------------------------------------------------------------- </p>
 <p>このチュートリアルでは、Clojure のデータ構造をコード例で簡単に学ぶことができます。Clojureの主要なコレクション、データ構造の使用パターン、Clojure の強力なコレクションライブラリを使用するための思考プロセスを、Vector、HashMap、Set などのコレクションの使用方法、Tupleや Entity 等の一般的なパターンを含めて解説していきます。</p>
@@ -935,7 +935,7 @@
 
       </google-codelab-step>
     
-      <google-codelab-step label="atom での使用方法" duration="0">
+      <google-codelab-step label="atom の使用方法" duration="0">
         <p>Clojure のデータ構造は変更不可能です。そして、Clojure は変更可能な変数を提供しません。我々は、何らかの方法で状態の変化をモデル化する必要があります。この必要性は、Queue を使用するときに特に顕著になります。プロデューサーが Queue に値を追加し、コンシューマーが値を取得する場合、明らかに何かを変更する必要があります。</p>
 <p>そのための最良の方法は、atom を使用することです。atom については、私の concurrency のガイドで詳しく説明しています。ここでは、Queue で atom を使って producer/consumer パターンを実現する方法を簡単に説明します。</p>
 <pre>(def queue (atom clojure.lang.PersistentQueue/EMPTY))
@@ -951,8 +951,8 @@
   []
   (let [[old new] (swap-vals! queue pop)] ;; pop removes the first
     (peek old))) ;; 最初の値を返す</pre>
-<p>Clojure 1.9 の新機能である swap-val を使用していることに注意してください。古いバージョンの Clojure では、これはもっと厄介なものでした。この swap-vals! 版をお勧めします。このようなユースケースは、まさにそれが追加された理由です。</p>
-<p>しかし、念のため、1.9 以前のClojure バージョンで動作する実装を紹介します。</p>
+<p>Clojure 1.9 の新機能である swap-val を使用していることに注意してください。古いバージョンの Clojure では、これはもっと厄介なものでした。swap-vals! の利用がおすすめです。このようなユースケースは、まさにそれが追加された理由です。</p>
+<p>しかし、念のために 1.9 以前の Clojure で動作する実装を紹介します。</p>
 <pre>;; we use a Tuple to store the previous first value and the Queue.
 (def queue (atom [nil clojure.lang.PersistentQueue/EMPTY]))
 
@@ -1000,11 +1000,11 @@
 
       </google-codelab-step>
     
-      <google-codelab-step label="Clojure の構文における Vextor と List の比較" duration="0">
+      <google-codelab-step label="Clojure の構文における Vector と List の比較" duration="0">
         <p>Clojureで List を使う構文と Vector を使う構文の違いは何かと聞かれたことがあります。例えば、let 形式では全体を括弧で囲みますが、束縛は角括弧で囲みます。</p>
 <pre>(let [a 1] ;; square
  ...)      ;; round</pre>
-<p>関数の定義もありますね。</p>
+<p>関数の定義もあります。</p>
 <pre>(defn myfn [arg1 arg2] ;; square
   ...)                 ;; round</pre>
 <p>意識的な設計上の判断だと思います。List は S 式を表すのに使われます。それらは、特殊なフォーム、マクロ呼び出し、または関数呼び出しのいずれかです。しかし、特殊なフォームやマクロの内部では、Clojure は物事をグループ化するために Vector を使用します。丸括弧と角括弧を交互に使うことで、何に注意を払えばいいのかが明確になります。</p>
@@ -1012,9 +1012,9 @@
 
       </google-codelab-step>
     
-      <google-codelab-step label="遅延とシーケンス" duration="0">
-        <p>Clojure のシーケンス関数は遅延です。つまり、シーケンスの全てを一度に評価することはありません。その代わり、シーケンスの一部だけを評価し、残りは後回しにすることができます。そして、その後来ないかもしれないので、多くの計算を節約することができます。また、無限列（例えば、すべての素数）やまだ起きていないこと（例えば、まだダウンロード中のファイルの残りの行）を表現することもできます。</p>
-<p>遅延をサポートするために、シーケンス関数<code>（map</code>, <code>filter</code>, <code>take</code> など）はすべて遅延を持ちます。これは最高の設計とは言えません。気をつけなければならない奇妙でゴチャゴチャしたことがたくさんあります。<a href="https://ericnormand.podia.com/beginning-clojure" target="_blank">私の遅延シーケンスに関する講座</a>で、それらを解説しています。あなたが好むと好まざるとにかかわらず、これらは Clojure に存在します（そして、あなたの目の前にあります）。あなたはそれらを無視することはできないので、彼らと友達になるべきです。</p>
+      <google-codelab-step label="遅延評価とシーケンス" duration="0">
+        <p>Clojure のシーケンス関数は遅延評価を行います。つまり、シーケンスの全てを一度に評価することはなく、シーケンスの一部だけを評価し、残りは後回しにします。残りの処理を行う必要のないこともあるので、多くの計算を節約することができます。また、無限列（全ての素数等）やまだ起きていないこと（例えば、まだダウンロード中のファイルの残りの行）を表現することもできます。</p>
+<p>遅延評価をサポートするために、シーケンス関数<code>（map</code>, <code>filter</code>, <code>take</code> など）はすべて遅延評価を行いますが、これは最高の設計とは言えません。気をつけなければならない奇妙でゴチャゴチャしたことがたくさんあります。<a href="https://ericnormand.podia.com/beginning-clojure" target="_blank">私の遅延シーケンスに関する講座</a>で、それらを解説しています。あなたが好むと好まざるとにかかわらず、これらは Clojure に存在します（そして、あなたの目の前にあります）。あなたはそれらを無視することはできないので、彼らと友達になるべきです。</p>
 
 
       </google-codelab-step>
