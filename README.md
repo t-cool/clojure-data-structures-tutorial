@@ -1,4 +1,4 @@
-# Clojure Data Structures Tutorial（邦訳）
+# Clojure Data Structures Tutorial 邦訳
 
 Eric Normand さんの記事 [Clojure Data Structures Tutorial](https://ericnormand.me/guide/clojure-collections) の邦訳です。
 
